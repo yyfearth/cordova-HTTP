@@ -4,6 +4,7 @@
 package com.synconset;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -16,6 +17,7 @@ import java.security.cert.X509Certificate;
 import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
@@ -79,6 +81,15 @@ public class CordovaHttpPlugin extends CordovaPlugin {
             } catch(Exception e) {
                 e.printStackTrace();
                 callbackContext.error("There was an error setting up ssl pinning");
+            }
+        } else if (action.equals("addPinningCerts")) {
+            try {
+                List<String> certs = this.getStringListFromJSONArray(args);
+                this.addPinningCerts(certs);
+                callbackContext.success();
+            } catch(Exception e) {
+                e.printStackTrace();
+                callbackContext.error("There was an error adding pinning certs");
             }
         } else if (action.equals("acceptAllCerts")) {
             boolean accept = args.getBoolean(0);
@@ -150,6 +161,14 @@ public class CordovaHttpPlugin extends CordovaPlugin {
         }
     }
 
+    private void addPinningCerts(List<String> certs) throws GeneralSecurityException, IOException {
+        for (String cert : certs) {
+            byte[] certBytes = Base64.decode(cert, Base64.NO_WRAP);
+            InputStream caInput = new ByteArrayInputStream(certBytes);
+            HttpRequest.addCert(caInput);
+        }
+    }
+
     private HashMap<String, String> getStringMapFromJSONObject(JSONObject object) throws JSONException {
         HashMap<String, String> map = new HashMap<String, String>();
         Iterator<?> i = object.keys();
@@ -170,5 +189,14 @@ public class CordovaHttpPlugin extends CordovaPlugin {
             map.put(key, object.get(key));
         }
         return map;
+    }
+
+    private List<String> getStringListFromJSONArray(JSONArray array) throws JSONException {
+        List<String> list = new ArrayList<String>();
+
+        for (int i = 0; i < array.length(); i++) {
+            list.add(array.getString(i));
+        }
+        return list;
     }
 }

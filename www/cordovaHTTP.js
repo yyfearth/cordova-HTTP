@@ -40,6 +40,9 @@ var http = {
     enableSSLPinning: function(enable, success, failure) {
         return exec(success, failure, "CordovaHttpPlugin", "enableSSLPinning", [enable]);
     },
+    addPinningCerts: function(certs, success, failure) {
+        return exec(success, failure, "CordovaHttpPlugin", "addPinningCerts", [certs]);
+    },
     acceptAllCerts: function(allow, success, failure) {
         return exec(success, failure, "CordovaHttpPlugin", "acceptAllCerts", [allow]);
     },
@@ -145,6 +148,9 @@ if (typeof angular !== "undefined") {
             },
             enableSSLPinning: function(enable) {
                 return makePromise(http.enableSSLPinning, [enable]);
+            },
+            addPinningCerts: function(certs) {
+                return makePromise(http.addPinningCerts, [certs]);
             },
             acceptAllCerts: function(allow) {
                 return makePromise(http.acceptAllCerts, [allow]);
