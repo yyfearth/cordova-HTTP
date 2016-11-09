@@ -70,6 +70,19 @@ As an alternative, you can store your .cer files in the www/certificates folder.
         console.log('error :(');
     });
     
+### addPinningCerts
+Add additional certificates to pin against at runtime.
+
+If you have a secure channel to distribute certificates, you can update certificates at runtime. This allows you to rotate expired certificates without having to force users to update their app.
+
+After SSL pinning has been enabled you can add Base64 DER encoded certificates.
+
+    CordovaHttpPlugin.addPinningCerts(['MIIEyzCCA7OgAwIBA...', 'MIIFHzCCBAegAwIBA...'], function() {
+        console.log('success!');
+    }, function() {
+        console.log('error :(');
+    });
+    
 ### acceptAllCerts
 Accept all SSL certificates.  Or disable accepting all certificates.  This defaults to false.
 

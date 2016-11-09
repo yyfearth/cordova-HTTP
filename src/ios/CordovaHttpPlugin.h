@@ -5,6 +5,7 @@
 @interface CordovaHttpPlugin : CDVPlugin
 
 - (void)enableSSLPinning:(CDVInvokedUrlCommand*)command;
+- (void)addPinningCerts:(CDVInvokedUrlCommand*)command;
 - (void)acceptAllCerts:(CDVInvokedUrlCommand*)command;
 - (void)validateDomainName:(CDVInvokedUrlCommand*)command;
 - (void)post:(CDVInvokedUrlCommand*)command;

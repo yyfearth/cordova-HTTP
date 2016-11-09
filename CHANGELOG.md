@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.2.1
+
+- Added addPinningCerts function for adding new pinning certificates at runtime
+
 ## v1.2.0
 
 - Added support for TLSv1.1 and TLSv1.2 for android versions 4.1-4.4 (API levels 16-19)
