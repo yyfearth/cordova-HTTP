@@ -72,6 +72,7 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -431,6 +432,77 @@ public class HttpRequest {
   }
   
   
+  /**
+  * Remove all certificates to test against when using ssl pinning.
+  */
+  public static void clearCerts() throws GeneralSecurityException, IOException {
+    if (PINNED_CERTS == null) {
+      PINNED_CERTS = new ArrayList<Certificate>();
+    } else {
+      PINNED_CERTS.clear();
+    }
+    addCerts(PINNED_CERTS);
+  }
+
+  /**
+  * Add certificates to test against when using ssl pinning.
+  *
+  * @param certs
+  *          The Certificates to set
+  * @throws GeneralSecurityException
+  * @throws IOException
+  */
+  public static void addCerts(Collection<Certificate> certs) throws GeneralSecurityException, IOException  {
+      if (PINNED_CERTS == null) {
+        PINNED_CERTS = new ArrayList<Certificate>(certs);
+      } else if (PINNED_CERTS != certs) {
+        PINNED_CERTS.addAll(certs);
+      }
+      String keyStoreType = KeyStore.getDefaultType();
+      KeyStore keyStore = KeyStore.getInstance(keyStoreType);
+      keyStore.load(null, null);
+
+      for (int i = 0; i < PINNED_CERTS.size(); i++) {
+        keyStore.setCertificateEntry("CA" + i, PINNED_CERTS.get(i));
+      }
+
+      // Create a TrustManager that trusts the CAs in our KeyStore
+      String tmfAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
+      TrustManagerFactory tmf = TrustManagerFactory.getInstance(tmfAlgorithm);
+      tmf.init(keyStore);
+
+      // Create an SSLContext that uses our TrustManager
+      SSLContext sslContext = SSLContext.getInstance("TLS");
+      sslContext.init(null, tmf.getTrustManagers(), null);
+
+      if (android.os.Build.VERSION.SDK_INT < 20) {
+        PINNED_FACTORY = new TLSSocketFactory(sslContext);
+      } else {
+        PINNED_FACTORY = sslContext.getSocketFactory();
+      }
+  }
+
+  /**
+   * Add certificates to test against when using ssl pinning.
+   *
+   * @param ins
+   *          An InputStream to read a certificate from
+   * @throws GeneralSecurityException
+   * @throws IOException
+   */
+  public static void addCerts(InputStream[] ins) throws GeneralSecurityException, IOException {
+    CertificateFactory cf = CertificateFactory.getInstance("X.509");
+    ArrayList<Certificate> certs = new ArrayList<Certificate>(ins.length);
+    for (InputStream in : ins) {
+      try {
+        certs.add(cf.generateCertificate(in));
+      } finally {
+        in.close();
+      }
+    }
+    addCerts(certs);
+  }
+
   /**
   * Add a certificate to test against when using ssl pinning.
   *

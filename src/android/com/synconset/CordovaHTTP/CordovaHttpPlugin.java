@@ -130,31 +130,33 @@ public class CordovaHttpPlugin extends CordovaPlugin {
             String[] files = assetManager.list("");
             int index;
             ArrayList<String> cerFiles = new ArrayList<String>();
-            for (int i = 0; i < files.length; i++) {
-                index = files[i].lastIndexOf('.');
+            for (String file1 : files) {
+                index = file1.lastIndexOf('.');
                 if (index != -1) {
-                    if (files[i].substring(index).equals(".cer")) {
-                        cerFiles.add(files[i]);
+                    if (file1.substring(index).equals(".cer")) {
+                        cerFiles.add(file1);
                     }
                 }
             }
 
             // scan the www/certificates folder for .cer files as well
             files = assetManager.list("www/certificates");
-            for (int i = 0; i < files.length; i++) {
-              index = files[i].lastIndexOf('.');
-              if (index != -1) {
-                if (files[i].substring(index).equals(".cer")) {
-                  cerFiles.add("www/certificates/" + files[i]);
+            for (String file : files) {
+                index = file.lastIndexOf('.');
+                if (index != -1) {
+                    if (file.substring(index).equals(".cer")) {
+                        cerFiles.add("www/certificates/" + file);
+                    }
                 }
-              }
             }
 
+            InputStream[] inputStreams = new InputStream[cerFiles.size()];
             for (int i = 0; i < cerFiles.size(); i++) {
                 InputStream in = cordova.getActivity().getAssets().open(cerFiles.get(i));
-                InputStream caInput = new BufferedInputStream(in);
-                HttpRequest.addCert(caInput);
+                inputStreams[i] = new BufferedInputStream(in);
             }
+            HttpRequest.clearCerts(); // always clear before add new ones
+            HttpRequest.addCerts(inputStreams);
             CordovaHttp.enableSSLPinning(true);
         } else {
             CordovaHttp.enableSSLPinning(false);
@@ -162,11 +164,12 @@ public class CordovaHttpPlugin extends CordovaPlugin {
     }
 
     private void addPinningCerts(List<String> certs) throws GeneralSecurityException, IOException {
-        for (String cert : certs) {
-            byte[] certBytes = Base64.decode(cert, Base64.NO_WRAP);
-            InputStream caInput = new ByteArrayInputStream(certBytes);
-            HttpRequest.addCert(caInput);
+        InputStream[] inputStreams = new InputStream[certs.size()];
+        for (int i = 0; i < certs.size(); i++) {
+            byte[] certBytes = Base64.decode(certs.get(i), Base64.NO_WRAP);
+            inputStreams[i] = new ByteArrayInputStream(certBytes);
         }
+        HttpRequest.addCerts(inputStreams);
     }
 
     private HashMap<String, String> getStringMapFromJSONObject(JSONObject object) throws JSONException {
