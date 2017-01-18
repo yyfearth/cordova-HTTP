@@ -84,7 +84,7 @@ public class CordovaHttpPlugin extends CordovaPlugin {
             }
         } else if (action.equals("addPinningCerts")) {
             try {
-                List<String> certs = this.getStringListFromJSONArray(args);
+                List<String> certs = this.getStringListFromJSONArray(args.getJSONArray(0));
                 this.addPinningCerts(certs);
                 callbackContext.success();
             } catch(Exception e) {
